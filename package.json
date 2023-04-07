@@ -1,0 +1,19 @@
+{
+  "name": "backend_pengaduan_mysql",
+  "version": "1.0.0",
+  "description": "project_pengaduan",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app"
+  },
+  "author": "team",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "formidable": "^2.1.1",
+    "morgan": "^1.10.0",
+    "mysql": "^2.18.1"
+  }
+}
