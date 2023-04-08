@@ -5,7 +5,6 @@ import ImgVal from "../validation/ImgVal.js"
 import PengaduanVal from "../validation/PengaduanVal.js"
 import moveUploadedFile from "../func/moveUploadedFile.js"
 import getDirName from "../func/getDirName.js"
-import { dir } from "console"
 
 class PengaduanControl{
     static async getAll(req,res){
@@ -85,7 +84,9 @@ class PengaduanControl{
 
             if(typeof parse.files.foto === "undefined"){
                 const keyUp = Object.keys(parse.files)[0]
-                fs.unlinkSync(parse.files[keyUp].filepath)
+                if(keyUp){
+                    fs.unlinkSync(parse.files[keyUp].filepath)
+                }
                 return res.status(400).json({
                     status : "Bad Request",
                     message : "terjadi kesalahan diclient",
@@ -185,7 +186,6 @@ class PengaduanControl{
             const imgUrl = result[0].foto.split("/")
             const img = imgUrl[imgUrl.length - 1]
             const dirName = getDirName()
-            console.log(dirName)
             
             fs.unlinkSync(`${dirName}/images/${img}`)
 
