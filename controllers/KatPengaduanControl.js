@@ -229,10 +229,6 @@ class KatPengaduanControl{
             }
 
 
-            
-        
-
-
             const checkImg = new ImgVal(parse.files.foto)
             checkImg.checkSize()
             checkImg.checkIsImg()
@@ -263,9 +259,9 @@ class KatPengaduanControl{
 
             await mysqlQuery(sql)
 
-            return res.status(201).json({
-                status : "Created",
-                message : "berhasil menambahkan kategori pengaduan",
+            return res.status(200).json({
+                status : "OK",
+                message : "berhasil mengubah kategori pengaduan",
                 errors : [],
                 data : []
             })
