@@ -24,8 +24,8 @@ class KategoriPengaduanVal{
     checkLen(){
         if(this.nama.length <= 2){
             this.#errors.push("nama kategori pengaduan minimal 2 karakter")
-        }else if(this.nama.length > 20){
-            this.#errors.push("nama kategori pengaduan maximal 20 karakter")
+        }else if(this.nama.length > 40){
+            this.#errors.push("nama kategori pengaduan maximal 40 karakter")
         }
     }
 
