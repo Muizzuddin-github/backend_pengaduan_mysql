@@ -34,9 +34,7 @@ class KrisarControl {
       const isiKritik = req.body.kritik;
       const isisaran = req.body.saran;
       const fk_user = +req.body.fk_user;
-      await mysqlQuery(
-        `INSERT INTO kritik_saran (kritik,saran,fk_user) VALUES('${isiKritik}','${isisaran}',${fk_user})`
-      );
+      await mysqlQuery(`INSERT INTO kritik_saran (kritik,saran,fk_user) VALUES('${isiKritik}','${isisaran}',${fk_user})`);
       return res.status(200).json({
         status: "OK",
         message: "Berhasil menambahkan data kritik dari user",
@@ -55,10 +53,7 @@ class KrisarControl {
   static async del(req, res) {
     try {
       const idKritik = +req.params.id;
-      const cekKrisar = await mysqlQuery(
-        `SELECT * FROM kritik_saran WHERE id=${idKritik}`
-      );
-
+      const cekKrisar = await mysqlQuery(`SELECT * FROM kritik_saran WHERE id=${idKritik}`);
       // memeriksa kritik & saran ada atau tidak
       if (cekKrisar.length === 0) {
         return res.status(404).json({
@@ -68,7 +63,6 @@ class KrisarControl {
           data: [],
         });
       }
-
       await mysqlQuery(`DELETE FROM kritik_saran WHERE id=${idKritik}`);
       return res.status(200).json({
         status: "OK",
