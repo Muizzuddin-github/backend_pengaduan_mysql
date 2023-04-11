@@ -53,9 +53,9 @@ class KrisarControl {
   static async del(req, res) {
     try {
       const idKritik = +req.params.id;
-      const cekKrisar = await mysqlQuery(`SELECT * FROM kritik_saran WHERE id=${idKritik}`);
+      const {result} = await mysqlQuery(`SELECT * FROM kritik_saran WHERE id=${idKritik}`);
       // memeriksa kritik & saran ada atau tidak
-      if (cekKrisar.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({
           status: "Not Found",
           message: "Terjadi kesalahan di user",
