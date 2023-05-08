@@ -1,10 +1,11 @@
-import express from 'express'
-import UsersControl from '../controllers/UsersControl.js'
+import express from "express";
+import UsersControl from "../controllers/UsersControl.js";
+import Auth from "../controllers/Auth.js";
 
-const users = express.Router()
+const users = express.Router();
 
+users.get("/", UsersControl.getAll);
+users.post("/", UsersControl.post);
+users.post("/login", Auth.login);
 
-users.get("/",UsersControl.getAll)
-users.post("/",UsersControl.post)
-
-export default users
+export default users;
