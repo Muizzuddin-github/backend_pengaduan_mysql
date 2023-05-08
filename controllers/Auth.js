@@ -70,6 +70,7 @@ class Auth {
         message: "berhasil login",
         errors: [],
         accessToken: accessToken,
+        redirctURL: val.getURL,
       });
     } catch (err) {
       return res.status(500).json({
@@ -77,6 +78,7 @@ class Auth {
         message: "terjadi kesalahan diserver",
         errors: [err.message],
         accessToken: "",
+        redirctURL: "",
       });
     }
   }

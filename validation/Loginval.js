@@ -3,6 +3,7 @@ import bcryptjs from "bcryptjs";
 
 class LoginVal {
   #id = 0;
+  #url = 0;
   #email = "";
   #password = "";
   #passwordDB = "";
@@ -19,6 +20,10 @@ class LoginVal {
 
   get getID() {
     return this.#id;
+  }
+
+  get getURL() {
+    return this.#url;
   }
 
   checkType() {
@@ -39,6 +44,7 @@ class LoginVal {
     if (result.length) {
       this.#passwordDB = result[0].password;
       this.#id = result[0].id;
+      this.#url = result[0] === 1 ? "/admin" : "/dashboard";
     } else {
       this.#errors.push("email tidak ditemukan");
     }
