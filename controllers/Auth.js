@@ -22,8 +22,8 @@ class Auth {
       await val.checkEmailExists();
 
       if (val.getErrors.length) {
-        return res.status(400).json({
-          status: "Bad Request",
+        return res.status(404).json({
+          status: "Not Found",
           message: "terjadi kesalahan diclient",
           errors: val.getErrors,
           accessToken: "",
