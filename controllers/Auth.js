@@ -38,6 +38,7 @@ class Auth {
           message: "terjadi kesalahan diclient",
           errors: val.getErrors,
           accessToken: "",
+          redirctURL: "",
         });
       }
 
