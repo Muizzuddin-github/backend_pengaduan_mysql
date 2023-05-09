@@ -85,6 +85,100 @@ class Auth {
       });
     }
   }
+
+  static async refreshAccessToken(req, res) {
+    try {
+      const refreshToken = req.cookies.refresh_token;
+
+      if (!refreshToken) {
+        return res.status(401).json({
+          status: "Unauthorized",
+          message: "terjadi kesalahan diserver",
+          errors: ["silahkan login terlebih dahulu"],
+          accessToken: "",
+        });
+      }
+
+      const { result } = await mysqlQuery(
+        "SELECT * FROM users WHERE refresh_token = ?",
+        refreshToken
+      );
+
+      if (!result.length) {
+        return res.status(401).json({
+          status: "Unauthorized",
+          message: "terjadi kesalahan diserver",
+          errors: ["silahkan login terlebih dahulu"],
+          accessToken: "",
+        });
+      }
+
+      const accessToken = jwt.sign(
+        { id: result[0].id },
+        process.env.SECRET_ACCESS,
+        {
+          expiresIn: "10m",
+        }
+      );
+
+      return res.status(200).json({
+        status: "OK",
+        message: "access token diberikan",
+        errors: [],
+        accessToken: accessToken,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "OK",
+        message: "terjadi kesalahan diserver",
+        errors: [err.message],
+        accessToken: "",
+      });
+    }
+  }
+
+  static async isLogin(req, res) {
+    try {
+      const refreshToken = req.cookies.refresh_token;
+
+      if (!refreshToken) {
+        return res.status(401).json({
+          status: "Unauthorized",
+          message: "terjadi kesalahan diserver",
+          errors: ["silahkan login terlebih dahulu"],
+          data: [],
+        });
+      }
+
+      const { result } = await mysqlQuery(
+        "SELECT * FROM users WHERE refresh_token = ?",
+        refreshToken
+      );
+
+      if (!result.length) {
+        return res.status(401).json({
+          status: "Unauthorized",
+          message: "terjadi kesalahan diserver",
+          errors: ["silahkan login terlebih dahulu"],
+          data: [],
+        });
+      }
+
+      return res.status(200).json({
+        status: "OK",
+        message: "sudah login",
+        errors: [],
+        data: result,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "OK",
+        message: "terjadi kesalahan diserver",
+        errors: [err.message],
+        data: [],
+      });
+    }
+  }
 }
 
 export default Auth;

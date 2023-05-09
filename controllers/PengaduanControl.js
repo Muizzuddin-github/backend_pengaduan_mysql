@@ -10,7 +10,39 @@ class PengaduanControl {
   static async getAll(req, res) {
     try {
       const { result } = await mysqlQuery(
-        "SELECT * FROM pengaduan WHERE fk_user = 4"
+        "SELECT * FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id"
+      );
+
+      return res.status(200).json({
+        status: "OK",
+        message: "semua data pengaduan",
+        errors: [],
+        data: result,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "Internal Server Error",
+        message: "terjadi kesalahan diserver",
+        errors: [err.message],
+        data: [],
+      });
+    }
+  }
+  static async getAllByUser(req, res) {
+    try {
+      const status = ["terkirim", "ditolak", "selesai", "diproses"];
+      if (status.includes(req.params.status)) {
+        return res.status(400).json({
+          status: "Bad Request",
+          message: "terjadi kesalahan diclient",
+          errors: [],
+          data: [],
+        });
+      }
+      const { result } = await mysqlQuery(
+        "SELECT * FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE users.id = ? AND users.status = ?",
+        req.userID,
+        req.params.status
       );
 
       return res.status(200).json({
