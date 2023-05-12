@@ -10,7 +10,7 @@ class PengaduanControl {
   static async getAll(req, res) {
     try {
       const { result } = await mysqlQuery(
-        "SELECT * FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id"
+        "SELECT p.id,p.foto,p.lokasi,p.status,p.tanggal,kt.nama,users.username,users.email FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id"
       );
 
       return res.status(200).json({
@@ -167,7 +167,7 @@ class PengaduanControl {
       }
 
       const img = moveUploadedFile(parse.files.foto);
-      const imgUrl = `${req.protocol}://${req.headers.host}/gambar/${img}`;
+      const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${img}`;
 
       const sql = `INSERT INTO pengaduan (foto,lokasi,deskripsi,fk_kategori_pengaduan,fk_user) VALUES('${imgUrl}','${
         checkPengaduan.lokasi

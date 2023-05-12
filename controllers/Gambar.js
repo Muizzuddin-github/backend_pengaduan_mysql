@@ -8,7 +8,6 @@ class Gambar {
       const dirName = getDirName();
 
       const img = `/images/${imgName}`;
-      console.log(img);
 
       const checkImg = fs.existsSync(`.${img}`);
       console.log(checkImg);
