@@ -13,6 +13,7 @@ admin.delete("/kategori-pengaduan/:id", onlyAdmin, KatControl.del);
 
 // pengaduan
 admin.get("/pengaduan", onlyAdmin, PengaduanControl.getAll);
+admin.patch("/pengaduan/:id", onlyAdmin, PengaduanControl.ubahStatus);
 
 // kisar
 admin.get("/krisar", onlyAdmin, KrisarControl.getAll);

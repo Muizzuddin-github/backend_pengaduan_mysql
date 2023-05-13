@@ -1,5 +1,4 @@
 import mysqlQuery from "../DB/mysqlQuery.js";
-import fs from "fs";
 import imgParser from "../func/imgParser.js";
 import ImgVal from "../validation/ImgVal.js";
 import PengaduanVal from "../validation/PengaduanVal.js";
@@ -171,9 +170,9 @@ class PengaduanControl {
 
       const sql = `INSERT INTO pengaduan (foto,lokasi,deskripsi,fk_kategori_pengaduan,fk_user) VALUES('${imgUrl}','${
         checkPengaduan.lokasi
-      }','${
-        checkPengaduan.deskripsi
-      }',${+checkPengaduan.kategoriPengaduan},${4})`;
+      }','${checkPengaduan.deskripsi}',${+checkPengaduan.kategoriPengaduan},${
+        req.userID
+      })`;
 
       await mysqlQuery(sql);
 
@@ -228,6 +227,53 @@ class PengaduanControl {
       return res.status(200).json({
         status: "OK",
         message: "berhasil dihapus",
+        errors: [],
+        data: [],
+      });
+    } catch (err) {
+      return res.status(200).json({
+        status: "Internal Server Error",
+        message: "terjadi kesalahan diserver",
+        errors: [err.message],
+        data: [],
+      });
+    }
+  }
+
+  static async ubahStatus(req, res) {
+    try {
+      const status = req.body.status;
+      if (status != "diproses") {
+        return res.status(400).json({
+          status: "Bad Request",
+          message: "terjadi kesalahan diclient",
+          errors: ["status hanya boleh diproses"],
+          data: [],
+        });
+      }
+
+      const { result } = await mysqlQuery(
+        "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
+        [req.params.id, "terkirim"]
+      );
+
+      if (result.length === 0) {
+        return res.status(404).json({
+          status: "Not Found",
+          message: "terjadi kesalahan diclient",
+          errors: ["pengaduan tidak ditemukan"],
+          data: [],
+        });
+      }
+
+      await mysqlQuery("UPDATE pengaduan SET status = ? WHERE id = ?", [
+        status,
+        req.params.id,
+      ]);
+
+      return res.status(200).json({
+        status: "OK",
+        message: "berhasil mengubah status",
         errors: [],
         data: [],
       });
