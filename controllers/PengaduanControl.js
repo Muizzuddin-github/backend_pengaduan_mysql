@@ -7,9 +7,19 @@ import getDirName from "../func/getDirName.js";
 
 class PengaduanControl {
   static async getAll(req, res) {
+    const status = ["terkirim", "ditolak", "selesai", "diproses"];
     try {
+      if (status.includes(req.params.status)) {
+        return res.status(400).json({
+          status: "Bad Request",
+          message: "terjadi kesalahan diclient",
+          errors: [],
+          data: [],
+        });
+      }
       const { result } = await mysqlQuery(
-        "SELECT p.id,p.foto,p.lokasi,p.status,p.tanggal,kt.nama,users.username,users.email FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id"
+        "SELECT p.id,p.foto,p.lokasi,p.status,p.tanggal,kt.nama,users.username,users.email FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ?",
+        req.params.status
       );
 
       return res.status(200).json({

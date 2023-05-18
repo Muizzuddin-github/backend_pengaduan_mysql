@@ -12,7 +12,7 @@ admin.put("/kategori-pengaduan/:id", onlyAdmin, KatControl.put);
 admin.delete("/kategori-pengaduan/:id", onlyAdmin, KatControl.del);
 
 // pengaduan
-admin.get("/pengaduan", onlyAdmin, PengaduanControl.getAll);
+admin.get("/pengaduan/:status", onlyAdmin, PengaduanControl.getAll);
 admin.patch("/pengaduan/:id", onlyAdmin, PengaduanControl.ubahStatus);
 
 // kisar
