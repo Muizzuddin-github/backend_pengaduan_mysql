@@ -4,6 +4,8 @@ import ImgVal from "../validation/ImgVal.js";
 import PengaduanVal from "../validation/PengaduanVal.js";
 import moveUploadedFile from "../func/moveUploadedFile.js";
 import getDirName from "../func/getDirName.js";
+import fs from "fs/promises";
+import checkDir from "../func/checkDir.js";
 
 class PengaduanControl {
   static async getAll(req, res) {
@@ -103,9 +105,9 @@ class PengaduanControl {
 
   static async post(req, res) {
     try {
-      const checkFolder = fs.existsSync("./images");
+      const checkFolder = await checkDir("./images");
       if (!checkFolder) {
-        fs.mkdirSync("./images");
+        await fs.mkdir("./images");
       }
 
       const checkContentType = req.is("multipart/form-data");
@@ -125,7 +127,7 @@ class PengaduanControl {
       if (typeof parse.files.foto === "undefined") {
         const keyUp = Object.keys(parse.files)[0];
         if (keyUp) {
-          fs.unlinkSync(parse.files[keyUp].filepath);
+          await fs.unlink(parse.files[keyUp].filepath);
         }
         return res.status(400).json({
           status: "Bad Request",
@@ -140,7 +142,7 @@ class PengaduanControl {
       checkPengaduan.checkLen();
 
       if (checkPengaduan.getErrors().length) {
-        fs.unlinkSync(parse.files.foto.filepath);
+        await fs.unlink(parse.files.foto.filepath);
         return res.status(404).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -152,7 +154,7 @@ class PengaduanControl {
       await checkPengaduan.checkKategori();
 
       if (checkPengaduan.getErrors().length) {
-        fs.unlinkSync(parse.files.foto.filepath);
+        await fs.unlink(parse.files.foto.filepath);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -166,7 +168,7 @@ class PengaduanControl {
       checkImg.checkIsImg();
 
       if (checkImg.getErrors().length) {
-        fs.unlinkSync(parse.files.foto.filepath);
+        await fs.unlink(parse.files.foto.filepath);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -175,7 +177,7 @@ class PengaduanControl {
         });
       }
 
-      const img = moveUploadedFile(parse.files.foto);
+      const img = await moveUploadedFile(parse.files.foto);
       const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${img}`;
 
       const sql = `INSERT INTO pengaduan (foto,lokasi,deskripsi,fk_kategori_pengaduan,fk_user) VALUES('${imgUrl}','${
@@ -230,7 +232,7 @@ class PengaduanControl {
       const img = imgUrl[imgUrl.length - 1];
       const dirName = getDirName();
 
-      fs.unlinkSync(`${dirName}/images/${img}`);
+      await fs.unlink(`${dirName}/images/${img}`);
 
       await mysqlQuery(`DELETE FROM pengaduan WHERE id = ${req.params.id}`);
 

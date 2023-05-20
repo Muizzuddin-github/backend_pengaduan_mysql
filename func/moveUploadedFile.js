@@ -1,21 +1,11 @@
-import fs from 'fs'
+import fs from "fs/promises";
 
+const moveUploadedFile = async (file) => {
+  const waktu = Date.now();
+  const newFileName = `${waktu}_${file.originalFilename}`;
+  await fs.rename(file.filepath, `./images/${newFileName}`);
 
-const moveUploadedFile = (file) => {
-    const waktu = Date.now()
-    const newFileName = `${waktu}_${file.originalFilename}`
+  return newFileName;
+};
 
-
-    // baca file dari url
-    const data = fs.readFileSync(file.filepath);
-
-    // buat file baru dengan nama yang ditentukan
-    // lalu isi dengan data hasil dari file yang diupload
-    fs.writeFileSync(`images/${newFileName}`,data)
-    // hapus file
-    fs.unlinkSync(file.filepath)
-
-    return newFileName
-}
-
-export default moveUploadedFile
+export default moveUploadedFile;

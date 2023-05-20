@@ -1,10 +1,11 @@
 import mysqlQuery from "../DB/mysqlQuery.js";
-import fs from "fs";
+import fs from "fs/promises";
 import imgParser from "../func/imgParser.js";
 import KategoriPengaduanVal from "../validation/KategoriPengaduanVal.js";
 import ImgVal from "../validation/ImgVal.js";
 import moveUploadedFile from "../func/moveUploadedFile.js";
 import getDirName from "../func/getDirName.js";
+import checkDir from "../func/checkDir.js";
 
 class KatControl {
   static async getAll(req, res) {
@@ -28,9 +29,9 @@ class KatControl {
   }
   static async post(req, res) {
     try {
-      const checkFolder = fs.existsSync("./images");
+      const checkFolder = await checkDir("./images");
       if (!checkFolder) {
-        fs.mkdirSync("./images");
+        await fs.mkdir("./images");
       }
 
       const checkContentType = req.is("multipart/form-data");
@@ -50,7 +51,7 @@ class KatControl {
       if (typeof parse.files.foto === "undefined") {
         const keyUp = Object.keys(parse.files)[0];
         if (keyUp) {
-          fs.unlinkSync(parse.files[keyUp].filepath);
+          await fs.unlink(parse.files[keyUp].filepath);
         }
         return res.status(400).json({
           status: "Bad Request",
@@ -65,7 +66,7 @@ class KatControl {
       val.checkType();
 
       if (val.getErrors().length) {
-        fs.unlinkSync(urlFileUpload);
+        await fs.unlink(urlFileUpload);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -78,7 +79,7 @@ class KatControl {
       await val.uniqKategori();
 
       if (val.getErrors().length) {
-        fs.unlinkSync(urlFileUpload);
+        await fs.unlink(urlFileUpload);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -92,7 +93,7 @@ class KatControl {
       checkImg.checkIsImg();
 
       if (checkImg.getErrors().length) {
-        fs.unlinkSync(urlFileUpload);
+        await fs.unlink(urlFileUpload);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -101,7 +102,7 @@ class KatControl {
         });
       }
 
-      const gambar = moveUploadedFile(parse.files.foto);
+      const gambar = await moveUploadedFile(parse.files.foto);
       const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${gambar}`;
 
       const sql = `INSERT INTO kategori_pengaduan (nama,foto,deskripsi) VALUES ('${val.nama}','${imgUrl}','${val.deskripsi}')`;
@@ -145,7 +146,7 @@ class KatControl {
       if (!result.length) {
         const keyUp = Object.keys(parse.files)[0];
         if (keyUp) {
-          fs.unlinkSync(parse.files[keyUp].filepath);
+          await fs.unlink(parse.files[keyUp].filepath);
         }
         return res.status(404).json({
           status: "Not Found",
@@ -195,7 +196,7 @@ class KatControl {
       val.checkType();
 
       if (val.getErrors().length) {
-        fs.unlinkSync(urlFileUpload);
+        await fs.unlink(urlFileUpload);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -207,7 +208,7 @@ class KatControl {
       val.checkLen();
 
       if (val.getErrors().length) {
-        fs.unlinkSync(urlFileUpload);
+        await fs.unlink(urlFileUpload);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -221,7 +222,7 @@ class KatControl {
       checkImg.checkIsImg();
 
       if (checkImg.getErrors().length) {
-        fs.unlinkSync(urlFileUpload);
+        await fs.unlink(urlFileUpload);
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -230,7 +231,7 @@ class KatControl {
         });
       }
 
-      const gambar = moveUploadedFile(parse.files.foto);
+      const gambar = await moveUploadedFile(parse.files.foto);
       const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${gambar}`;
 
       const sql = `UPDATE kategori_pengaduan SET nama = '${val.nama}', foto = '${imgUrl}', deskripsi = '${val.deskripsi}' WHERE id = ${req.params.id}`;
@@ -240,7 +241,7 @@ class KatControl {
       const imgOld = result[0].foto.split("/");
       const imgUrlOld = imgOld[imgOld.length - 1];
 
-      fs.unlinkSync(`${dirName}/images/${imgUrlOld}`);
+      await fs.unlink(`${dirName}/images/${imgUrlOld}`);
 
       await mysqlQuery(sql);
 
@@ -284,7 +285,7 @@ class KatControl {
 
       const dirName = getDirName();
 
-      fs.unlinkSync(`${dirName}/images/${imgName}`);
+      await fs.unlink(`${dirName}/images/${imgName}`);
 
       return res.status(200).json({
         status: "OK",
