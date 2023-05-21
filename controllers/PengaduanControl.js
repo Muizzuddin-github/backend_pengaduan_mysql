@@ -11,7 +11,7 @@ class PengaduanControl {
   static async getAll(req, res) {
     const status = ["terkirim", "ditolak", "selesai", "diproses"];
     try {
-      if (status.includes(req.params.status)) {
+      if (!status.includes(req.params.status)) {
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
@@ -42,7 +42,7 @@ class PengaduanControl {
   static async getAllByUser(req, res) {
     try {
       const status = ["terkirim", "ditolak", "selesai", "diproses"];
-      if (status.includes(req.params.status)) {
+      if (!status.includes(req.params.status)) {
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
