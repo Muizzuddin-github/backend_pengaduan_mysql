@@ -151,7 +151,7 @@ class Auth {
       }
 
       const { result } = await mysqlQuery(
-        "SELECT * FROM users WHERE refresh_token = ?",
+        "SELECT users.id,users.username,users.email,roles.role FROM users INNER JOIN roles on roles.id=users.fk_role WHERE refresh_token = ?",
         refreshToken
       );
 
