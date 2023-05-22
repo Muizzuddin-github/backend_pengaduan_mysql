@@ -117,7 +117,7 @@ class Auth {
         { id: result[0].id },
         process.env.SECRET_ACCESS,
         {
-          expiresIn: "10m",
+          expiresIn: "1m",
         }
       );
 

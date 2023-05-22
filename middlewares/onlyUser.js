@@ -35,7 +35,7 @@ const onlyUser = async (req, res, next) => {
       throw new Error("access token tidak valid");
     }
 
-    if (result[0].role != "Admin") {
+    if (result[0].role !== "User") {
       return res.status(403).json({
         status: "Forbidden",
         message: "terjadi kesalahan diclient",
