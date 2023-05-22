@@ -52,7 +52,7 @@ class PengaduanControl {
       }
 
       const { result } = await mysqlQuery(
-        "SELECT * FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE users.id = ? AND p.status = ?",
+        "SELECT p.id,p.foto,p.lokasi,p.deskripsi,p.status,p.tanggal,users.username,users.email,kt.nama FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE users.id = ? AND p.status = ?",
         [req.userID, req.params.status]
       );
 
