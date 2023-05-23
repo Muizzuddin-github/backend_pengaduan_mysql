@@ -26,7 +26,7 @@ const onlyUser = async (req, res, next) => {
       return res.status(403).json({
         status: "Forbidden",
         message: "terjadi kesalahan diclient",
-        errors: ["hanya admin yang boleh akses"],
+        errors: ["hanya user yang boleh akses"],
         data: [],
       });
     }
@@ -39,7 +39,7 @@ const onlyUser = async (req, res, next) => {
       return res.status(403).json({
         status: "Forbidden",
         message: "terjadi kesalahan diclient",
-        errors: ["hanya admin yang boleh akses"],
+        errors: ["hanya user yang boleh akses"],
         data: [],
       });
     }

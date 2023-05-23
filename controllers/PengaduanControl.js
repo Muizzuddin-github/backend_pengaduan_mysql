@@ -180,13 +180,16 @@ class PengaduanControl {
       const img = await moveUploadedFile(parse.files.foto);
       const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${img}`;
 
-      const sql = `INSERT INTO pengaduan (foto,lokasi,deskripsi,fk_kategori_pengaduan,fk_user) VALUES('${imgUrl}','${
-        checkPengaduan.lokasi
-      }','${checkPengaduan.deskripsi}',${+checkPengaduan.kategoriPengaduan},${
-        req.userID
-      })`;
+      const sql =
+        "INSERT INTO pengaduan (foto,lokasi,deskripsi,fk_kategori_pengaduan,fk_user) VALUES(?,?,?,?,?)";
 
-      await mysqlQuery(sql);
+      await mysqlQuery(sql, [
+        imgUrl,
+        checkPengaduan.lokasi,
+        checkPengaduan.deskripsi,
+        +checkPengaduan.kategoriPengaduan,
+        req.userID,
+      ]);
 
       return res.status(201).json({
         status: "Created",

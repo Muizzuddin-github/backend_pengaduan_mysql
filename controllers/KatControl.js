@@ -105,8 +105,10 @@ class KatControl {
       const gambar = await moveUploadedFile(parse.files.foto);
       const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${gambar}`;
 
-      const sql = `INSERT INTO kategori_pengaduan (nama,foto,deskripsi) VALUES ('${val.nama}','${imgUrl}','${val.deskripsi}')`;
-      await mysqlQuery(sql);
+      const sql =
+        "INSERT INTO kategori_pengaduan (nama,foto,deskripsi) VALUES (?,?,?)";
+
+      await mysqlQuery(sql, [val.nama, imgUrl, val.deskripsi]);
 
       return res.status(201).json({
         status: "Created",
@@ -179,9 +181,10 @@ class KatControl {
           });
         }
 
-        const sql = `UPDATE kategori_pengaduan SET nama = '${val.nama}', deskripsi = '${val.deskripsi}' WHERE id = ${req.params.id}`;
+        const sql =
+          "UPDATE kategori_pengaduan SET nama = ?, deskripsi = ? WHERE id = ?";
 
-        await mysqlQuery(sql);
+        await mysqlQuery(sql, [val.nama, val.deskripsi, req.params.id]);
 
         return res.status(200).json({
           status: "OK",
