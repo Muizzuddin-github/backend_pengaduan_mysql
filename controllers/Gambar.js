@@ -10,7 +10,6 @@ class Gambar {
       const img = `/images/${imgName}`;
 
       const checkImg = fs.existsSync(`.${img}`);
-      console.log(checkImg);
       if (!checkImg) {
         return res.status(404).json({
           status: "Not Found",

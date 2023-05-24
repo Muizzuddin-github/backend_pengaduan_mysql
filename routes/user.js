@@ -3,6 +3,7 @@ import PengaduanControl from "../controllers/PengaduanControl.js";
 import onlyUser from "../middlewares/onlyUser.js";
 import UsersControl from "../controllers/UserControl.js";
 import KrisarControl from "../controllers/KrisarControl.js";
+import PenangananControl from "../controllers/PenangananControl.js";
 
 // hanya role user
 const user = express.Router();
@@ -20,5 +21,8 @@ user.post("/pengaduan", onlyUser, PengaduanControl.post);
 
 user.post("/krisar", onlyUser, KrisarControl.post);
 user.delete("/krisar/:id", onlyUser, KrisarControl.del);
+
+// penanganan
+user.get("/penanganan/:status", onlyUser, PenangananControl.getAllUser);
 
 export default user;

@@ -3,6 +3,7 @@ import KatControl from "../controllers/KatControl.js";
 import onlyAdmin from "../middlewares/onlyAdmin.js";
 import PengaduanControl from "../controllers/PengaduanControl.js";
 import KrisarControl from "../controllers/KrisarControl.js";
+import PenangananControl from "../controllers/PenangananControl.js";
 
 const admin = express.Router();
 
@@ -17,5 +18,10 @@ admin.patch("/pengaduan/:id", onlyAdmin, PengaduanControl.ubahStatus);
 
 // kisar
 admin.get("/krisar", onlyAdmin, KrisarControl.getAll);
+
+// penanganan
+admin.get("/penanganan/:status", onlyAdmin, PenangananControl.getAllAdmin);
+admin.post("/penanganan", onlyAdmin, PenangananControl.post);
+admin.delete("/penanganan/:id", onlyAdmin, PenangananControl.del);
 
 export default admin;
