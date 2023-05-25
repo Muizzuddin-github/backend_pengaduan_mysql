@@ -158,6 +158,9 @@ class PenangananControl {
         }
 
         singPengaduan = result;
+      } else {
+        errors.push("pengaduan tidak ditemukan");
+        errors.push("status hanya boleh selesai atau ditolak");
       }
 
       if (!singPengaduan.length) {
