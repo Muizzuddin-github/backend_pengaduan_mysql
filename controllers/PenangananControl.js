@@ -132,17 +132,40 @@ class PenangananControl {
         });
       }
 
-      const { result } = await mysqlQuery(
-        "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
-        [+field.pengaduanID, "diproses"]
-      );
+      let singPengaduan = [];
+      let errors = [];
 
-      if (!result.length) {
+      if (field.status === "selesai") {
+        const { result } = await mysqlQuery(
+          "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
+          [+field.pengaduanID, "diproses"]
+        );
+
+        if (!result.length) {
+          errors.push("pengaduan tidak ditemukan");
+          errors.push("pengaduan selesai harus diproses terlebih dahulu");
+        }
+
+        singPengaduan = result;
+      } else if (field.status === "ditolak") {
+        const { result } = await mysqlQuery(
+          "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
+          [+field.pengaduanID, "terkirim"]
+        );
+
+        if (!result.length) {
+          errors.push("pengaduan tidak ditemukan");
+        }
+
+        singPengaduan = result;
+      }
+
+      if (!singPengaduan.length) {
         await fs.unlink(file.foto_bukti.filepath);
         return res.status(404).json({
           status: "Not Found",
           message: "terjadi kesalahan diclient",
-          errors: ["pengaduan tidak ditemukan"],
+          errors: errors,
           data: [],
         });
       }

@@ -15,7 +15,7 @@ class PengaduanControl {
         return res.status(400).json({
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
-          errors: [],
+          errors: ["status tidak ada"],
           data: [],
         });
       }
@@ -75,7 +75,7 @@ class PengaduanControl {
   static async getByid(req, res) {
     try {
       const { result } = await mysqlQuery(
-        `SELECT * FROM pengaduan WHERE id = ${req.params.id}`
+        `SELECT p.id,users.username,users.email,p.deskripsi,p.foto,p.lokasi,p.tanggal FROM pengaduan as p INNER JOIN users ON p.fk_user=users.id WHERE p.id = ${req.params.id}`
       );
 
       if (!result.length) {
@@ -89,7 +89,7 @@ class PengaduanControl {
 
       return res.status(200).json({
         status: "OK",
-        message: "semua data pengaduan",
+        message: "single data pengaduan",
         errors: [],
         data: result,
       });

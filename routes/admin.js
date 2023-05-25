@@ -14,6 +14,7 @@ admin.delete("/kategori-pengaduan/:id", onlyAdmin, KatControl.del);
 
 // pengaduan
 admin.get("/pengaduan/:status", onlyAdmin, PengaduanControl.getAll);
+admin.get("/pengaduan-single/:id", onlyAdmin, PengaduanControl.getByid);
 admin.patch("/pengaduan/:id", onlyAdmin, PengaduanControl.ubahStatus);
 
 // kisar
