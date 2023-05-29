@@ -18,7 +18,7 @@ user.get("/pengaduan/:status", onlyUser, PengaduanControl.getAllByUser);
 user.post("/pengaduan", onlyUser, PengaduanControl.post);
 
 // kisar
-
+user.get("/krisar", onlyUser, KrisarControl.getAllByUser);
 user.post("/krisar", onlyUser, KrisarControl.post);
 user.delete("/krisar/:id", onlyUser, KrisarControl.del);
 

@@ -73,7 +73,7 @@ class Auth {
         message: "berhasil login",
         errors: [],
         accessToken: accessToken,
-        redirctURL: val.getURL,
+        redirectURL: val.getURL,
       });
     } catch (err) {
       return res.status(500).json({
@@ -100,7 +100,7 @@ class Auth {
       }
 
       const { result } = await mysqlQuery(
-        "SELECT * FROM users WHERE refresh_token = ?",
+        `SELECT users.id, users.username,users.email,roles.role FROM users INNER JOIN roles on roles.id=users.fk_role WHERE users.refresh_token = ?`,
         refreshToken
       );
 
@@ -117,7 +117,7 @@ class Auth {
         { id: result[0].id },
         process.env.SECRET_ACCESS,
         {
-          expiresIn: "10m",
+          expiresIn: "1m",
         }
       );
 
@@ -126,6 +126,7 @@ class Auth {
         message: "access token diberikan",
         errors: [],
         accessToken: accessToken,
+        data: result,
       });
     } catch (err) {
       return res.status(500).json({
@@ -151,10 +152,11 @@ class Auth {
       }
 
       const { result } = await mysqlQuery(
-        "SELECT users.id,users.username,users.email,roles.role FROM users INNER JOIN roles on roles.id=users.fk_role WHERE refresh_token = ?",
+        `SELECT users.id, users.username,users.email,roles.role FROM users INNER JOIN roles on roles.id=users.fk_role WHERE users.refresh_token = ?`,
         refreshToken
       );
 
+      console.log(result);
       if (!result.length) {
         return res.status(401).json({
           status: "Unauthorized",

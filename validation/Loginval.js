@@ -44,7 +44,7 @@ class LoginVal {
     if (result.length) {
       this.#passwordDB = result[0].password;
       this.#id = result[0].id;
-      this.#url = result[0] === 1 ? "/admin" : "/dashboard";
+      this.#url = result[0].fk_role === 1 ? "/admin" : "/dashboard";
     } else {
       this.#errors.push("email tidak ditemukan");
     }
