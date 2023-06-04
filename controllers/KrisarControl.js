@@ -5,7 +5,7 @@ class KrisarControl {
   static async getAll(req, res) {
     try {
       const { result } = await mysqlQuery(
-        "SELECT kritik_saran.id, kritik_saran.kritik, kritik_saran.saran, kritik_saran.tanggal , users.username, users.email FROM kritik_saran INNER JOIN users ON kritik_saran.fk_user=users.id ;"
+        "SELECT kritik_saran.id, kritik_saran.kritik, kritik_saran.saran, kritik_saran.tanggal , users.username, users.email FROM kritik_saran INNER JOIN users ON kritik_saran.fk_user=users.id ORDER BY kritik_saran.tanggal DESC"
       );
 
       return res.status(200).json({
@@ -28,7 +28,7 @@ class KrisarControl {
   static async getAllByUser(req, res) {
     try {
       const { result } = await mysqlQuery(
-        "SELECT kritik_saran.id, kritik_saran.kritik, kritik_saran.saran, kritik_saran.tanggal , users.username, users.email FROM kritik_saran INNER JOIN users ON kritik_saran.fk_user=users.id WHERE users.id= ?",
+        "SELECT kritik_saran.id, kritik_saran.kritik, kritik_saran.saran, kritik_saran.tanggal , users.username, users.email FROM kritik_saran INNER JOIN users ON kritik_saran.fk_user=users.id WHERE users.id = ? ORDER BY kritik_saran.tanggal DESC",
         req.userID
       );
       return res.status(200).json({

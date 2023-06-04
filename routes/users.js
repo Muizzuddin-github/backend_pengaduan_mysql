@@ -10,5 +10,6 @@ users.post("/login", Auth.login);
 users.get("/kategori-pengaduan", onlyUsers, KatControl.getAll);
 users.get("/refresh-access-token", Auth.refreshAccessToken);
 users.get("/islogin", Auth.isLogin);
+users.put("/logout", Auth.logout);
 
 export default users;

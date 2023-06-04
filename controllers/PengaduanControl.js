@@ -20,7 +20,7 @@ class PengaduanControl {
         });
       }
       const { result } = await mysqlQuery(
-        "SELECT p.id,p.foto,p.lokasi,p.status,p.deskripsi, p.tanggal,kt.nama,users.username,users.email FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ?",
+        "SELECT p.id,p.foto,p.lokasi,p.status,p.deskripsi, p.tanggal,kt.nama,users.username,users.email FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ? ORDER BY p.tanggal DESC",
         req.params.status
       );
 

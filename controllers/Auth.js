@@ -156,7 +156,6 @@ class Auth {
         refreshToken
       );
 
-      console.log(result);
       if (!result.length) {
         return res.status(401).json({
           status: "Unauthorized",
@@ -171,6 +170,33 @@ class Auth {
         message: "sudah login",
         errors: [],
         data: result,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "OK",
+        message: "terjadi kesalahan diserver",
+        errors: [err.message],
+        data: [],
+      });
+    }
+  }
+
+  static async logout(req, res) {
+    try {
+      const refreshToken = req.cookies.refresh_token;
+
+      await mysqlQuery(
+        "UPDATE users SET refresh_token = ? WHERE refresh_token = ?",
+        [null, refreshToken]
+      );
+
+      res.clearCookie("refresh_token");
+
+      return res.status(200).json({
+        status: "OK",
+        message: "berhasil logout",
+        errors: [],
+        data: [],
       });
     } catch (err) {
       return res.status(500).json({
