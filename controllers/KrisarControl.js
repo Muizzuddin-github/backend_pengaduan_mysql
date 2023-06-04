@@ -1,30 +1,11 @@
 import mysqlQuery from "../DB/mysqlQuery.js";
 
 class KrisarControl {
+  //admin
   static async getAll(req, res) {
     try {
-      const { result } = await mysqlQuery("SELECT * FROM kritik_saran");
-
-      return res.status(200).json({
-        status: "OK",
-        message: "Data kritik dari user",
-        errors: [],
-        data: result,
-      });
-    } catch (err) {
-      res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
-    }
-  }
-  static async getAllByUser(req, res) {
-    try {
       const { result } = await mysqlQuery(
-        "SELECT * FROM kritik_saran WHERE id = ?",
-        req.userID
+        "SELECT kritik_saran.id, kritik_saran.kritik, kritik_saran.saran, kritik_saran.tanggal , users.username, users.email FROM kritik_saran INNER JOIN users ON kritik_saran.fk_user=users.id ;"
       );
 
       return res.status(200).json({
@@ -42,6 +23,30 @@ class KrisarControl {
       });
     }
   }
+
+  //user
+  static async getAllByUser(req, res) {
+    try {
+      const { result } = await mysqlQuery(
+        "SELECT kritik_saran.id, kritik_saran.kritik, kritik_saran.saran, kritik_saran.tanggal , users.username, users.email FROM kritik_saran INNER JOIN users ON kritik_saran.fk_user=users.id WHERE users.id= ?",
+        req.userID
+      );
+      return res.status(200).json({
+        status: "OK",
+        message: "Data kritik dari user",
+        errors: [],
+        data: result,
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: "Internal Server Error",
+        message: "terjadi kesalahan diserver",
+        errors: [err.message],
+        data: [],
+      });
+    }
+  }
+
   static async post(req, res) {
     try {
       const checkContentType = req.is("application/json");
@@ -55,9 +60,9 @@ class KrisarControl {
       }
       const isiKritik = req.body.kritik;
       const isisaran = req.body.saran;
-      const fk_user = +req.body.fk_user;
       await mysqlQuery(
-        `INSERT INTO kritik_saran (kritik,saran,fk_user) VALUES('${isiKritik}','${isisaran}',${fk_user})`
+        `INSERT INTO kritik_saran (kritik,saran,fk_user) VALUES(?,?,?)`,
+        [isiKritik, isisaran, req.userID]
       );
       return res.status(200).json({
         status: "OK",
