@@ -142,15 +142,14 @@ class PenangananControl {
         );
 
         if (!result.length) {
-          errors.push("pengaduan tidak ditemukan");
           errors.push("pengaduan selesai harus diproses terlebih dahulu");
         }
 
         singPengaduan = result;
       } else if (field.status === "ditolak") {
         const { result } = await mysqlQuery(
-          "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
-          [+field.pengaduanID, "terkirim"]
+          "SELECT * FROM pengaduan WHERE id = ? AND (status = ? OR status = ? )",
+          [+field.pengaduanID, "terkirim", "diproses"]
         );
 
         if (!result.length) {
@@ -159,7 +158,6 @@ class PenangananControl {
 
         singPengaduan = result;
       } else {
-        errors.push("pengaduan tidak ditemukan");
         errors.push("status hanya boleh selesai atau ditolak");
       }
 
