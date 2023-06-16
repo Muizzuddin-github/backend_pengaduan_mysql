@@ -29,7 +29,7 @@ class KrisarControl {
     try {
       const { result } = await mysqlQuery(
         "SELECT kritik_saran.id, kritik_saran.kritik, kritik_saran.saran, kritik_saran.tanggal , users.username, users.email FROM kritik_saran INNER JOIN users ON kritik_saran.fk_user=users.id WHERE users.id = ? ORDER BY kritik_saran.tanggal DESC",
-        req.userID
+        req.user.id
       );
       return res.status(200).json({
         status: "OK",
@@ -62,7 +62,7 @@ class KrisarControl {
       const isisaran = req.body.saran;
       await mysqlQuery(
         `INSERT INTO kritik_saran (kritik,saran,fk_user) VALUES(?,?,?)`,
-        [isiKritik, isisaran, req.userID]
+        [isiKritik, isisaran, req.user.id]
       );
       return res.status(200).json({
         status: "OK",

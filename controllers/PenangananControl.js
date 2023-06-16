@@ -6,6 +6,7 @@ import moveUploadedFile from "../func/moveUploadedFile.js";
 import ImgVal from "../validation/ImgVal.js";
 import PenangananVal from "../validation/PenangananVal.js";
 import getDirName from "../func/getDirName.js";
+import Response from "../func/Response.js";
 
 class PenangananControl {
   static async getAll(req, res) {
@@ -15,19 +16,9 @@ class PenangananControl {
         "selesai"
       );
 
-      return res.status(200).json({
-        status: "OK",
-        message: "semua data penanganan",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "semua data penanganan anda", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
   static async getAllAdmin(req, res) {
@@ -35,12 +26,7 @@ class PenangananControl {
       const status = ["selesai", "ditolak"];
 
       if (!status.includes(req.params.status)) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["status harus selesai atau ditolak"],
-          data: [],
-        });
+        return Response.badRequest(res, "status harus selesai atau ditolak");
       }
 
       const { result } = await mysqlQuery(
@@ -48,19 +34,9 @@ class PenangananControl {
         req.params.status
       );
 
-      return res.status(200).json({
-        status: "OK",
-        message: "semua data penanganan",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "semua data penanganan", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
   static async getAllUser(req, res) {
@@ -68,32 +44,17 @@ class PenangananControl {
       const status = ["selesai", "ditolak"];
 
       if (!status.includes(req.params.status)) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["status harus selesai atau ditolak"],
-          data: [],
-        });
+        return Response.badRequest(res, "status harus selesai atau ditolak");
       }
 
       const { result } = await mysqlQuery(
         "SELECT pen.id,pen.foto_bukti,pen.deskripsi,pen.tanggal,users.username,users.email FROM penanganan as pen INNER JOIN pengaduan as p ON pen.fk_pengaduan=p.id INNER JOIN users ON p.fk_user=users.id WHERE users.id = ? AND p.status = ?",
-        [req.userID, req.params.status]
+        [req.user.id, req.params.status]
       );
 
-      return res.status(200).json({
-        status: "OK",
-        message: "semua data penanganan",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "semua data penanganan anda", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
   static async post(req, res) {
@@ -105,12 +66,10 @@ class PenangananControl {
 
       const checkContentType = req.is("multipart/form-data");
       if (!checkContentType) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["content type harus multipart/form-data"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "content type harus multipart/form-data"
+        );
       }
 
       const data = await imgParser(req);
@@ -124,12 +83,10 @@ class PenangananControl {
         if (keyUp) {
           await fs.unlink(parse.files[keyUp].filepath);
         }
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["harus mengupload foto dengan properti foto_bukti"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "harus mengupload foto dengan properti foto_bukti"
+        );
       }
 
       let singPengaduan = [];
@@ -163,12 +120,7 @@ class PenangananControl {
 
       if (!singPengaduan.length) {
         await fs.unlink(file.foto_bukti.filepath);
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesalahan diclient",
-          errors: errors,
-          data: [],
-        });
+        return Response.notFound(res, errors);
       }
 
       const penVal = new PenangananVal(field);
@@ -177,24 +129,14 @@ class PenangananControl {
 
       if (penVal.getErrors.length) {
         await fs.unlink(file.foto_bukti.filepath);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: penVal.getErrors,
-          data: [],
-        });
+        return Response.badRequest(res, penVal.getErrors);
       }
 
       const imgVal = new ImgVal(file.foto_bukti);
 
       if (imgVal.getErrors().length) {
         await fs.unlink(file.foto_bukti.filepath);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: imgVal.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, imgVal.getErrors());
       }
 
       const img = await moveUploadedFile(parse.files.foto_bukti);
@@ -210,19 +152,9 @@ class PenangananControl {
         [imgUrl, field.deskripsi, +field.pengaduanID]
       );
 
-      return res.status(201).json({
-        status: "Created",
-        message: "berhasil menambahkan penanganan",
-        errors: [],
-        data: [],
-      });
+      return Response.created(res, "berhasil menambahkan penanganan");
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -234,12 +166,7 @@ class PenangananControl {
       );
 
       if (!result.length) {
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesahalan diclient",
-          errors: ["penanganan tidak ditemukan"],
-          data: [],
-        });
+        return Response.notFound(res, "penanganan tidak ditemukan");
       }
 
       const dir = `${getDirName()}/images`;
@@ -252,19 +179,9 @@ class PenangananControl {
         +result[0].id_pengaduan,
       ]);
 
-      return res.status(200).json({
-        status: "OK",
-        message: "berhasil mengahapus penanganan",
-        errors: [],
-        data: [],
-      });
+      return Response.success(res, "berhasil mengahpus penanganan");
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 }

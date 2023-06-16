@@ -1,6 +1,7 @@
 import LoginVal from "../validation/Loginval.js";
 import jwt from "jsonwebtoken";
 import mysqlQuery from "../DB/mysqlQuery.js";
+import Response from "../func/Response.js";
 
 class Auth {
   static async login(req, res) {
@@ -14,7 +15,6 @@ class Auth {
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
           errors: val.getErrors,
-          accessToken: "",
           redirctURL: "",
         });
       }
@@ -26,7 +26,6 @@ class Auth {
           status: "Not Found",
           message: "terjadi kesalahan diclient",
           errors: val.getErrors,
-          accessToken: "",
           redirctURL: "",
         });
       }
@@ -37,32 +36,20 @@ class Auth {
           status: "Bad Request",
           message: "terjadi kesalahan diclient",
           errors: val.getErrors,
-          accessToken: "",
           redirctURL: "",
         });
       }
 
-      const refreshToken = jwt.sign(
-        { id: val.getID },
-        process.env.SECRET_REFRESH,
-        {
-          expiresIn: "1d",
-        }
-      );
-      const accessToken = jwt.sign(
-        { id: val.getID },
-        process.env.SECRET_ACCESS,
-        {
-          expiresIn: "10m",
-        }
-      );
+      const token = jwt.sign({ id: val.getID }, process.env.SECRET_TOKEN, {
+        expiresIn: "1d",
+      });
 
       await mysqlQuery("UPDATE users SET refresh_token = ? WHERE id = ?", [
-        refreshToken,
+        token,
         val.getID,
       ]);
 
-      res.cookie("refresh_token", refreshToken, {
+      res.cookie("token", token, {
         httpOnly: true,
         maxAge: 60 * 60 * 24 * 1000,
         secure: false,
@@ -72,7 +59,6 @@ class Auth {
         status: "OK",
         message: "berhasil login",
         errors: [],
-        accessToken: accessToken,
         redirectURL: val.getURL,
       });
     } catch (err) {
@@ -80,131 +66,25 @@ class Auth {
         status: "Internal Server Error",
         message: "terjadi kesalahan diserver",
         errors: [err.message],
-        accessToken: "",
         redirctURL: "",
-      });
-    }
-  }
-
-  static async refreshAccessToken(req, res) {
-    try {
-      const refreshToken = req.cookies.refresh_token;
-
-      if (!refreshToken) {
-        return res.status(401).json({
-          status: "Unauthorized",
-          message: "terjadi kesalahan diserver",
-          errors: ["silahkan login terlebih dahulu"],
-          accessToken: "",
-        });
-      }
-
-      const { result } = await mysqlQuery(
-        `SELECT users.id, users.username,users.email,roles.role FROM users INNER JOIN roles on roles.id=users.fk_role WHERE users.refresh_token = ?`,
-        refreshToken
-      );
-
-      if (!result.length) {
-        return res.status(401).json({
-          status: "Unauthorized",
-          message: "terjadi kesalahan diserver",
-          errors: ["silahkan login terlebih dahulu"],
-          accessToken: "",
-        });
-      }
-
-      const accessToken = jwt.sign(
-        { id: result[0].id },
-        process.env.SECRET_ACCESS,
-        {
-          expiresIn: "1m",
-        }
-      );
-
-      return res.status(200).json({
-        status: "OK",
-        message: "access token diberikan",
-        errors: [],
-        accessToken: accessToken,
-        data: result,
-      });
-    } catch (err) {
-      return res.status(500).json({
-        status: "OK",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        accessToken: "",
-      });
-    }
-  }
-
-  static async isLogin(req, res) {
-    try {
-      const refreshToken = req.cookies.refresh_token;
-
-      if (!refreshToken) {
-        return res.status(401).json({
-          status: "Unauthorized",
-          message: "terjadi kesalahan diserver",
-          errors: ["silahkan login terlebih dahulu"],
-          data: [],
-        });
-      }
-
-      const { result } = await mysqlQuery(
-        `SELECT users.id, users.username,users.email,roles.role FROM users INNER JOIN roles on roles.id=users.fk_role WHERE users.refresh_token = ?`,
-        refreshToken
-      );
-
-      if (!result.length) {
-        return res.status(401).json({
-          status: "Unauthorized",
-          message: "terjadi kesalahan diserver",
-          errors: ["silahkan login terlebih dahulu"],
-          data: [],
-        });
-      }
-
-      return res.status(200).json({
-        status: "OK",
-        message: "sudah login",
-        errors: [],
-        data: result,
-      });
-    } catch (err) {
-      return res.status(500).json({
-        status: "OK",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
       });
     }
   }
 
   static async logout(req, res) {
     try {
-      const refreshToken = req.cookies.refresh_token;
+      const token = req.cookies.token;
 
       await mysqlQuery(
         "UPDATE users SET refresh_token = ? WHERE refresh_token = ?",
-        [null, refreshToken]
+        [null, token]
       );
 
-      res.clearCookie("refresh_token");
+      res.clearCookie("token");
 
-      return res.status(200).json({
-        status: "OK",
-        message: "berhasil logout",
-        errors: [],
-        data: [],
-      });
+      return Response.success(res, "logout berhasil");
     } catch (err) {
-      return res.status(500).json({
-        status: "OK",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 }

@@ -1,6 +1,7 @@
 import mysqlQuery from "../DB/mysqlQuery.js";
 import UserValidation from "../validation/UserValidation.js";
 import bcryptjs from "bcryptjs";
+import Response from "../func/Response.js";
 
 class UsersControl {
   static async getAll(req, res) {
@@ -9,19 +10,9 @@ class UsersControl {
         "SELECT users.id,users.username,users.email,roles.role FROM users INNER JOIN roles ON roles.id=users.fk_role"
       );
 
-      return res.status(200).json({
-        status: "OK",
-        message: "semua data users",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "semua data users", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -31,35 +22,20 @@ class UsersControl {
       userVal.checkType();
 
       if (userVal.getErrors.length) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: userVal.getErrors,
-          data: [],
-        });
+        return Response.badRequest(res, userVal.getErrors);
       }
 
       userVal.checkLen();
       userVal.checkIsEmail();
 
       if (userVal.getErrors.length) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: userVal.getErrors,
-          data: [],
-        });
+        return Response.badRequest(res, userVal.getErrors);
       }
 
       await userVal.checkUniqEmail();
 
       if (userVal.getErrors.length) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: userVal.getErrors,
-          data: [],
-        });
+        return Response.badRequest(res, userVal.getErrors);
       }
 
       const salt = bcryptjs.genSaltSync(10);
@@ -77,19 +53,9 @@ class UsersControl {
                 )
             `);
 
-      return res.status(201).json({
-        status: "Created",
-        message: "berhasil menambahkan user",
-        errors: [],
-        data: [],
-      });
+      return Response.created(res, "user berhasil registrasi");
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 }

@@ -1,5 +1,6 @@
 import fs from "fs";
 import getDirName from "../func/getDirName.js";
+import Response from "../func/Response.js";
 
 class Gambar {
   static getSingle(req, res) {
@@ -11,22 +12,12 @@ class Gambar {
 
       const checkImg = fs.existsSync(`.${img}`);
       if (!checkImg) {
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesalahan diclient",
-          errors: ["gambar tidak ditemukan"],
-          data: [],
-        });
+        return Response.notFound(res, "gambar tidak ditemukan");
       }
 
       return res.sendFile(img, { root: dirName });
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 }

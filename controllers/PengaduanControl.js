@@ -6,69 +6,40 @@ import moveUploadedFile from "../func/moveUploadedFile.js";
 import getDirName from "../func/getDirName.js";
 import fs from "fs/promises";
 import checkDir from "../func/checkDir.js";
+import Response from "../func/Response.js";
 
 class PengaduanControl {
   static async getAll(req, res) {
     const status = ["terkirim", "ditolak", "selesai", "diproses"];
     try {
       if (!status.includes(req.params.status)) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["status tidak ada"],
-          data: [],
-        });
+        return Response.badRequest(res, "status tidak ada");
       }
       const { result } = await mysqlQuery(
         "SELECT p.id,p.foto,p.lokasi,p.status,p.deskripsi, p.tanggal,kt.nama,users.username,users.email FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ? ORDER BY p.tanggal DESC",
         req.params.status
       );
 
-      return res.status(200).json({
-        status: "OK",
-        message: "semua data pengaduan",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "semua data pengaduan", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
   static async getAllByUser(req, res) {
     try {
       const status = ["terkirim", "ditolak", "selesai", "diproses"];
       if (!status.includes(req.params.status)) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: [],
-          data: [],
-        });
+        return Response.badRequest(res, "status tidak ada");
       }
 
       const { result } = await mysqlQuery(
         "SELECT p.id,p.foto,p.lokasi,p.deskripsi,p.status,p.tanggal,users.username,users.email,kt.nama FROM pengaduan AS p INNER JOIN kategori_pengaduan AS kt ON p.fk_kategori_pengaduan=kt.id INNER JOIN users ON p.fk_user=users.id WHERE users.id = ? AND p.status = ?",
-        [req.userID, req.params.status]
+        [req.user.id, req.params.status]
       );
 
-      return res.status(200).json({
-        status: "OK",
-        message: "semua data pengaduan",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "semua data pengaduan anda", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -79,27 +50,12 @@ class PengaduanControl {
       );
 
       if (!result.length) {
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesalahan diclient",
-          errors: ["pengaduan tidak ditemukan"],
-          data: [],
-        });
+        return Response.notFound(res, "pengaduan tidak ditemukan");
       }
 
-      return res.status(200).json({
-        status: "OK",
-        message: "single data pengaduan",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "single data pengaduan", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -112,12 +68,10 @@ class PengaduanControl {
 
       const checkContentType = req.is("multipart/form-data");
       if (!checkContentType) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["content type harus multipart/form-data"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "content type harus multipart/form-data"
+        );
       }
 
       const data = await imgParser(req);
@@ -129,12 +83,10 @@ class PengaduanControl {
         if (keyUp) {
           await fs.unlink(parse.files[keyUp].filepath);
         }
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["harus mengupload foto dengan properti foto"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "harus mengupload foto dengan properti foto"
+        );
       }
 
       const checkPengaduan = new PengaduanVal(parse.field);
@@ -143,24 +95,14 @@ class PengaduanControl {
 
       if (checkPengaduan.getErrors().length) {
         await fs.unlink(parse.files.foto.filepath);
-        return res.status(404).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: checkPengaduan.getErrors(),
-          data: [],
-        });
+        return Response.notFound(res, checkPengaduan.getErrors());
       }
 
       await checkPengaduan.checkKategori();
 
       if (checkPengaduan.getErrors().length) {
         await fs.unlink(parse.files.foto.filepath);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: checkPengaduan.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, checkPengaduan.getErrors());
       }
 
       const checkImg = new ImgVal(parse.files.foto);
@@ -169,12 +111,7 @@ class PengaduanControl {
 
       if (checkImg.getErrors().length) {
         await fs.unlink(parse.files.foto.filepath);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: checkImg.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, checkImg.getErrors());
       }
 
       const img = await moveUploadedFile(parse.files.foto);
@@ -191,19 +128,9 @@ class PengaduanControl {
         req.userID,
       ]);
 
-      return res.status(201).json({
-        status: "Created",
-        message: "berhasil menambah pengaduan",
-        errors: [],
-        data: [],
-      });
+      return Response.created(res, "berhasil menambah pengaduan");
     } catch (err) {
-      return res.status(200).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -214,21 +141,14 @@ class PengaduanControl {
       );
 
       if (!result.length) {
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesalahan diclient",
-          errors: ["pengaduan tidak ditemukan"],
-          data: [],
-        });
+        return Response.notFound(res, "pengaduan tidak ditemukan");
       }
 
       if (result[0].status !== "terkirim") {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["status selain terkirim pengaduan tidak bisa dihapus"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "status selain terkirim pengaduan tidak bisa dihapus"
+        );
       }
 
       const imgUrl = result[0].foto.split("/");
@@ -239,19 +159,9 @@ class PengaduanControl {
 
       await mysqlQuery(`DELETE FROM pengaduan WHERE id = ${req.params.id}`);
 
-      return res.status(200).json({
-        status: "OK",
-        message: "berhasil dihapus",
-        errors: [],
-        data: [],
-      });
+      return Response.success(res, "berhasil mengahapus pengaduan");
     } catch (err) {
-      return res.status(200).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -259,12 +169,7 @@ class PengaduanControl {
     try {
       const status = req.body.status;
       if (status != "diproses") {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["status hanya boleh diproses"],
-          data: [],
-        });
+        return Response.badRequest(res, "status hanya boleh diproses");
       }
 
       const { result } = await mysqlQuery(
@@ -273,12 +178,7 @@ class PengaduanControl {
       );
 
       if (result.length === 0) {
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesalahan diclient",
-          errors: ["pengaduan tidak ditemukan"],
-          data: [],
-        });
+        return Response.notFound(res, "pengaduan tidak ditemukan");
       }
 
       await mysqlQuery("UPDATE pengaduan SET status = ? WHERE id = ?", [
@@ -286,19 +186,9 @@ class PengaduanControl {
         req.params.id,
       ]);
 
-      return res.status(200).json({
-        status: "OK",
-        message: "berhasil mengubah status",
-        errors: [],
-        data: [],
-      });
+      return Response.success(res, "berhasil mengubah status");
     } catch (err) {
-      return res.status(200).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 }

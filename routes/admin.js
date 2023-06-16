@@ -4,8 +4,12 @@ import onlyAdmin from "../middlewares/onlyAdmin.js";
 import PengaduanControl from "../controllers/PengaduanControl.js";
 import KrisarControl from "../controllers/KrisarControl.js";
 import PenangananControl from "../controllers/PenangananControl.js";
+import UsersControl from "../controllers/UserControl.js";
 
 const admin = express.Router();
+
+// user
+admin.get("/user", onlyAdmin, UsersControl.getAll);
 
 // kategori pengaduan
 admin.post("/kategori-pengaduan", onlyAdmin, KatControl.post);

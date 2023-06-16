@@ -1,39 +1,26 @@
 import mysqlQuery from "../DB/mysqlQuery.js";
-import jwt from "jsonwebtoken";
+import Response from "../func/Response.js";
 
 const onlyUsers = async (req, res, next) => {
   try {
-    const accessToken = req.headers.authorization;
+    const token = req.cookies.token;
 
-    if (!accessToken) {
-      throw new Error("butuh access token");
+    if (!token) {
+      throw new Error("silahkan login terlebih dahulu");
     }
-
-    const [schema, token] = accessToken.split(" ");
-
-    if (schema !== "Bearer") {
-      throw new Error("hanya Bearer auth");
-    }
-
-    const { id } = jwt.verify(token, process.env.SECRET_ACCESS);
 
     const { result } = await mysqlQuery(
-      "SELECT * FROM users INNER JOIN roles ON users.fk_role=roles.id WHERE users.id = ?",
-      id
+      "SELECT * FROM users INNER JOIN roles ON users.fk_role=roles.id WHERE refresh_token = ?",
+      token
     );
 
-    if (!result.length) {
-      throw new Error("access token tidak valid");
+    if (result.length === 0) {
+      throw new Error("silahkan login terlebih dahulu");
     }
 
     next();
   } catch (err) {
-    return res.status(401).json({
-      status: "Unauthorized",
-      message: "terjadi kesalahan diclient",
-      errors: [err.message],
-      data: [],
-    });
+    return Response.unauthorized(res, err.message);
   }
 };
 

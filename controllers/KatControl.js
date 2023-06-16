@@ -6,25 +6,16 @@ import ImgVal from "../validation/ImgVal.js";
 import moveUploadedFile from "../func/moveUploadedFile.js";
 import getDirName from "../func/getDirName.js";
 import checkDir from "../func/checkDir.js";
+import Response from "../func/Response.js";
 
 class KatControl {
   static async getAll(req, res) {
     try {
       const { result } = await mysqlQuery("SELECT * FROM kategori_pengaduan");
 
-      return res.status(200).json({
-        status: "OK",
-        message: "semua data kategori pengaduan",
-        errors: [],
-        data: result,
-      });
+      return Response.success(res, "semua data pengaduan", result);
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
   static async post(req, res) {
@@ -36,12 +27,10 @@ class KatControl {
 
       const checkContentType = req.is("multipart/form-data");
       if (!checkContentType) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["content type harus multipart/form-data"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "content type harus multipart/form-data"
+        );
       }
 
       const data = await imgParser(req);
@@ -53,12 +42,10 @@ class KatControl {
         if (keyUp) {
           await fs.unlink(parse.files[keyUp].filepath);
         }
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["harus mengupload foto dengan properti foto"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "harus mengupload foto dengan properti foto"
+        );
       }
 
       const urlFileUpload = parse.files.foto.filepath;
@@ -67,12 +54,7 @@ class KatControl {
 
       if (val.getErrors().length) {
         await fs.unlink(urlFileUpload);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: val.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, val.getErrors());
       }
 
       val.checkLen();
@@ -80,12 +62,7 @@ class KatControl {
 
       if (val.getErrors().length) {
         await fs.unlink(urlFileUpload);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: val.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, val.getErrors());
       }
 
       const checkImg = new ImgVal(parse.files.foto);
@@ -94,12 +71,7 @@ class KatControl {
 
       if (checkImg.getErrors().length) {
         await fs.unlink(urlFileUpload);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: checkImg.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, val.getErrors());
       }
 
       const gambar = await moveUploadedFile(parse.files.foto);
@@ -110,19 +82,9 @@ class KatControl {
 
       await mysqlQuery(sql, [val.nama, imgUrl, val.deskripsi]);
 
-      return res.status(201).json({
-        status: "Created",
-        message: "berhasil menambahkan kategori pengaduan",
-        errors: [],
-        data: [],
-      });
+      return Response.created(res, "berhasil menambahkan kategori pengaduan");
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -130,12 +92,10 @@ class KatControl {
     try {
       const checkContentType = req.is("multipart/form-data");
       if (!checkContentType) {
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: ["content type harus multipart/form-data"],
-          data: [],
-        });
+        return Response.badRequest(
+          res,
+          "content type harus multipart/form-data"
+        );
       }
 
       const data = await imgParser(req);
@@ -150,12 +110,7 @@ class KatControl {
         if (keyUp) {
           await fs.unlink(parse.files[keyUp].filepath);
         }
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesalahan diclient",
-          errors: ["kategori pengaduan tidak ditemukan"],
-          data: [],
-        });
+        return Response.notFound(res, "kategori pengaduan tidak ditemukan");
       }
 
       if (typeof parse.files.foto === "undefined") {
@@ -163,22 +118,12 @@ class KatControl {
         val.checkType();
 
         if (val.getErrors().length) {
-          return res.status(400).json({
-            status: "Bad Request",
-            message: "terjadi kesalahan diclient",
-            errors: val.getErrors(),
-            data: [],
-          });
+          return Response.badRequest(res, val.getErrors());
         }
 
         val.checkLen();
         if (val.getErrors().length) {
-          return res.status(400).json({
-            status: "Bad Request",
-            message: "terjadi kesalahan diclient",
-            errors: val.getErrors(),
-            data: [],
-          });
+          return Response.badRequest(res, val.getErrors());
         }
 
         const sql =
@@ -186,12 +131,7 @@ class KatControl {
 
         await mysqlQuery(sql, [val.nama, val.deskripsi, req.params.id]);
 
-        return res.status(200).json({
-          status: "OK",
-          message: "berhasil mengubah kategori pengaduan",
-          errors: [],
-          data: [],
-        });
+        return Response.success(res, "berhasil mengubah kategori pengaduan");
       }
 
       const urlFileUpload = parse.files.foto.filepath;
@@ -200,24 +140,14 @@ class KatControl {
 
       if (val.getErrors().length) {
         await fs.unlink(urlFileUpload);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: val.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, val.getErrors());
       }
 
       val.checkLen();
 
       if (val.getErrors().length) {
         await fs.unlink(urlFileUpload);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: val.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, val.getErrors());
       }
 
       const checkImg = new ImgVal(parse.files.foto);
@@ -226,12 +156,7 @@ class KatControl {
 
       if (checkImg.getErrors().length) {
         await fs.unlink(urlFileUpload);
-        return res.status(400).json({
-          status: "Bad Request",
-          message: "terjadi kesalahan diclient",
-          errors: checkImg.getErrors(),
-          data: [],
-        });
+        return Response.badRequest(res, checkImg.getErrors());
       }
 
       const gambar = await moveUploadedFile(parse.files.foto);
@@ -248,19 +173,9 @@ class KatControl {
 
       await mysqlQuery(sql);
 
-      return res.status(200).json({
-        status: "OK",
-        message: "berhasil mengubah kategori pengaduan",
-        errors: [],
-        data: [],
-      });
+      return Response.success(res, "berhasil mengubah kategori pengaduan");
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 
@@ -271,12 +186,7 @@ class KatControl {
       );
 
       if (!result.length) {
-        return res.status(404).json({
-          status: "Not Found",
-          message: "terjadi kesalahan diclient",
-          errors: ["kategori pengaduan tidak ditemukan"],
-          data: [],
-        });
+        return Response.notFound(res, "kategori pengaduan tidak ditemukan");
       }
 
       const img = result[0].foto.split("/");
@@ -290,19 +200,12 @@ class KatControl {
 
       await fs.unlink(`${dirName}/images/${imgName}`);
 
-      return res.status(200).json({
-        status: "OK",
-        message: "berhasil menghapus pengaduan dan relasinya",
-        errors: [],
-        data: [],
-      });
+      return Response.success(
+        res,
+        "berhasil menghapus kategori pengaduan dan relasinya"
+      );
     } catch (err) {
-      return res.status(500).json({
-        status: "Internal Server Error",
-        message: "terjadi kesalahan diserver",
-        errors: [err.message],
-        data: [],
-      });
+      return Response.serverError(res, err.message);
     }
   }
 }
