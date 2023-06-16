@@ -13,7 +13,7 @@ class KatControl {
     try {
       const { result } = await mysqlQuery("SELECT * FROM kategori_pengaduan");
 
-      return Response.success(res, "semua data pengaduan", result);
+      return Response.success(res, "semua data pengaduan", result, req.user);
     } catch (err) {
       return Response.serverError(res, err.message);
     }

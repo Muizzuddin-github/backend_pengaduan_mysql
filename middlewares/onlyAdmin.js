@@ -10,7 +10,7 @@ const onlyAdmin = async (req, res, next) => {
     }
 
     const { result } = await mysqlQuery(
-      "SELECT * FROM users INNER JOIN roles ON users.fk_role=roles.id WHERE refresh_token = ?",
+      "SELECT users.id, users.username ,users.email, roles.role  FROM users INNER JOIN roles ON users.fk_role=roles.id WHERE refresh_token = ?",
       token
     );
 
@@ -21,6 +21,8 @@ const onlyAdmin = async (req, res, next) => {
     if (result[0].role !== "Admin") {
       return Response.forbidden(res, "hanya admin yang boleh akses");
     }
+
+    req.user = result[0];
 
     next();
   } catch (err) {

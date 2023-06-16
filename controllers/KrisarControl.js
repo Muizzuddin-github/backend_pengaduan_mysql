@@ -36,6 +36,7 @@ class KrisarControl {
         message: "Data kritik dari user",
         errors: [],
         data: result,
+        user: req.user,
       });
     } catch (err) {
       res.status(500).json({
