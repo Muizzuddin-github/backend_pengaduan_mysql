@@ -87,6 +87,40 @@ class Auth {
       return Response.serverError(res, err.message);
     }
   }
+
+  static async isLogin(req, res) {
+    try {
+      const token = req.cookies.token;
+
+      if (!token) {
+        throw new Error("silahkan login terlebih dahulu");
+      }
+
+      const { result } = await mysqlQuery(
+        "SELECT users.id, users.username ,users.email, roles.role  FROM users INNER JOIN roles ON users.fk_role=roles.id WHERE refresh_token = ?",
+        token
+      );
+
+      if (result.length === 0) {
+        throw new Error("silahkan login terlebih dahulu");
+      }
+
+      let url = "/admin";
+
+      if (result[0].role === "User") {
+        url = "/dashboard";
+      }
+
+      return res.status(200).json({
+        status: "OK",
+        message: "sudah login",
+        errors: [],
+        redirectURL: url,
+      });
+    } catch (err) {
+      return Response.unauthorized(res, err.message);
+    }
+  }
 }
 
 export default Auth;
