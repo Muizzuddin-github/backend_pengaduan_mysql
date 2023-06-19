@@ -61,15 +61,18 @@ class KrisarControl {
       }
       const isiKritik = req.body.kritik;
       const isisaran = req.body.saran;
-      await mysqlQuery(
+      const insertKritik = await mysqlQuery(
         `INSERT INTO kritik_saran (kritik,saran,fk_user) VALUES(?,?,?)`,
         [isiKritik, isisaran, req.user.id]
       );
+
+      req.body.id = insertKritik.result.insertId;
+
       return res.status(200).json({
         status: "OK",
         message: "Berhasil menambahkan data kritik dari user",
         errors: [],
-        data: [],
+        data: [req.body],
       });
     } catch (err) {
       res.status(500).json({
