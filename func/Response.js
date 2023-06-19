@@ -16,13 +16,18 @@ class Response {
     });
   }
   static success(res, message, data = [], user = {}) {
-    return res.status(200).json({
+    const resObj = {
       status: "OK",
       message: message,
       errors: [],
       data: data,
-      user: user,
-    });
+    };
+
+    if (Object.keys(user).length > 0) {
+      resObj.user = user;
+    }
+
+    return res.status(200).json(resObj);
   }
   static serverError(res, errors, user = {}) {
     return res.status(500).json({

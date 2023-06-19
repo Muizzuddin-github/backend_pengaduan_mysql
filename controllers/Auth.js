@@ -75,11 +75,18 @@ class Auth {
     try {
       const token = req.cookies.token;
 
-      await mysqlQuery(
+      if (!token) {
+        return Response.unauthorized(res, "silahkan login terlebih dahulu");
+      }
+
+      const user = await mysqlQuery(
         "UPDATE users SET refresh_token = ? WHERE refresh_token = ?",
         [null, token]
       );
 
+      if (user.result.affectedRows === 0) {
+        return Response.unauthorized(res, "silahkan login terlebih dahulu");
+      }
       res.clearCookie("token");
 
       return Response.success(res, "logout berhasil");
