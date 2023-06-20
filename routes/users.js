@@ -9,7 +9,7 @@ const users = express.Router();
 
 users.post("/login", Auth.login);
 users.get("/kategori-pengaduan", onlyUsers, KatControl.getAll);
-users.put("/logout", Auth.logout);
+users.post("/logout", Auth.logout);
 users.post("/register", UsersControl.post);
 users.get("/islogin", Auth.isLogin);
 
