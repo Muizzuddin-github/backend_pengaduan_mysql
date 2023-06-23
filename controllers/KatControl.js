@@ -52,26 +52,27 @@ class KatControl {
       const val = new KategoriPengaduanVal(parse.field);
       val.checkType();
 
+      
       if (val.getErrors().length) {
         await fs.unlink(urlFileUpload);
         return Response.badRequest(res, val.getErrors());
       }
-
+      
       val.checkLen();
       await val.uniqKategori();
-
+      
       if (val.getErrors().length) {
         await fs.unlink(urlFileUpload);
         return Response.badRequest(res, val.getErrors());
       }
-
+      
       const checkImg = new ImgVal(parse.files.foto);
       checkImg.checkSize();
       checkImg.checkIsImg();
-
+      
       if (checkImg.getErrors().length) {
         await fs.unlink(urlFileUpload);
-        return Response.badRequest(res, val.getErrors());
+        return Response.badRequest(res, checkImg.getErrors());
       }
 
       const gambar = await moveUploadedFile(parse.files.foto);
@@ -80,9 +81,16 @@ class KatControl {
       const sql =
         "INSERT INTO kategori_pengaduan (nama,foto,deskripsi) VALUES (?,?,?)";
 
-      await mysqlQuery(sql, [val.nama, imgUrl, val.deskripsi]);
+      const newKat = await mysqlQuery(sql, [val.nama, imgUrl, val.deskripsi]);
+      
+      const sendKat = {
+        id : newKat.result.insertId,
+        nama : val.nama,
+        foto : imgUrl,
+        deskripsi : val.deskripsi
+      }
 
-      return Response.created(res, "berhasil menambahkan kategori pengaduan");
+      return Response.created(res, "berhasil menambahkan kategori pengaduan",[sendKat]);
     } catch (err) {
       return Response.serverError(res, err.message);
     }
