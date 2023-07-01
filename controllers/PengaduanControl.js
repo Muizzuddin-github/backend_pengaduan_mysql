@@ -95,14 +95,14 @@ class PengaduanControl {
 
       if (checkPengaduan.getErrors().length) {
         await fs.unlink(parse.files.foto.filepath);
-        return Response.notFound(res, checkPengaduan.getErrors());
+        return Response.badRequest(res, checkPengaduan.getErrors());
       }
 
       await checkPengaduan.checkKategori();
 
       if (checkPengaduan.getErrors().length) {
         await fs.unlink(parse.files.foto.filepath);
-        return Response.badRequest(res, checkPengaduan.getErrors());
+        return Response.notFoundt(res, checkPengaduan.getErrors());
       }
 
       const checkImg = new ImgVal(parse.files.foto);
@@ -125,7 +125,7 @@ class PengaduanControl {
         checkPengaduan.lokasi,
         checkPengaduan.deskripsi,
         +checkPengaduan.kategoriPengaduan,
-        req.userID,
+        req.user.id,
       ]);
 
       return Response.created(res, "berhasil menambah pengaduan");
