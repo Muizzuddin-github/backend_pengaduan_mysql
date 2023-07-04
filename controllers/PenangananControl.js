@@ -12,7 +12,7 @@ class PenangananControl {
   static async getAll(req, res) {
     try {
       const { result } = await mysqlQuery(
-        "SELECT pen.id,pen.foto_bukti,pen.deskripsi,pen.tanggal,users.username,users.email FROM penanganan as pen INNER JOIN pengaduan as p ON pen.fk_pengaduan=p.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ? ORDER BY pen.tanggal DESC",
+        "SELECT pen.id,pen.foto_bukti,pen.deskripsi,pen.tanggal,users.username,users.email FROM penanganan as pen INNER JOIN pengaduan as p ON pen.fk_pengaduan=p.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ? ORDER BY pen.tanggal DESC limit 8",
         "selesai"
       );
 
@@ -30,7 +30,7 @@ class PenangananControl {
       }
 
       const { result } = await mysqlQuery(
-        "SELECT pen.id,pen.foto_bukti,pen.deskripsi,pen.tanggal,users.username,users.email  FROM penanganan as pen INNER JOIN pengaduan as p ON pen.fk_pengaduan=p.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ?",
+        "SELECT pen.id,pen.foto_bukti,pen.deskripsi,pen.tanggal,users.username,users.email  FROM penanganan as pen INNER JOIN pengaduan as p ON pen.fk_pengaduan=p.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ? ORDER BY pen.tanggal DESC",
         req.params.status
       );
 
@@ -145,8 +145,8 @@ class PenangananControl {
           }
 
           const { result } = await mysqlQuery(
-            "SELECT * FROM pengaduan WHERE id = ? AND (status = ? OR status = ? )",
-            [+field.pengaduanID, "terkirim", "diproses"]
+            "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
+            [+field.pengaduanID, "terkirim"]
           );
   
           if (!result.length) {
@@ -176,7 +176,7 @@ class PenangananControl {
         }else{
           const { result } = await mysqlQuery(
             "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
-            [+field.pengaduanID, "diproses"]
+            [+field.pengaduanID, "terkirim"]
           );
   
           if (!result.length) {
