@@ -11,7 +11,7 @@ import Response from "../func/Response.js";
 class KatControl {
   static async getAll(req, res) {
     try {
-      const { result } = await mysqlQuery("SELECT * FROM kategori_pengaduan");
+      const { result } = await mysqlQuery("SELECT * FROM kategori_pengaduan ORDER BY nama");
 
       return Response.success(res, "semua data pengaduan", result, req.user);
     } catch (err) {

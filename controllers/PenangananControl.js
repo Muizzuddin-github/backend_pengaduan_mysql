@@ -12,7 +12,7 @@ class PenangananControl {
   static async getAll(req, res) {
     try {
       const { result } = await mysqlQuery(
-        "SELECT pen.id,pen.foto_bukti,pen.deskripsi,pen.tanggal,users.username,users.email FROM penanganan as pen INNER JOIN pengaduan as p ON pen.fk_pengaduan=p.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ?",
+        "SELECT pen.id,pen.foto_bukti,pen.deskripsi,pen.tanggal,users.username,users.email FROM penanganan as pen INNER JOIN pengaduan as p ON pen.fk_pengaduan=p.id INNER JOIN users ON p.fk_user=users.id WHERE p.status = ? ORDER BY pen.tanggal DESC",
         "selesai"
       );
 
@@ -78,81 +78,143 @@ class PenangananControl {
       const field = parse.field;
       const file = parse.files;
 
-      if (typeof parse.files.foto_bukti === "undefined") {
-        const keyUp = Object.keys(parse.files)[0];
-        if (keyUp) {
-          await fs.unlink(parse.files[keyUp].filepath);
-        }
-        return Response.badRequest(
-          res,
-          "harus mengupload foto dengan properti foto_bukti"
-        );
+      const status = ["selesai", "ditolak"];
+
+      if (!status.includes(field.status)) {
+        return Response.badRequest(res, "status harus selesai atau ditolak");
       }
 
-      let singPengaduan = [];
-      let errors = [];
-
       if (field.status === "selesai") {
+
+        if (typeof parse.files.foto_bukti === "undefined") {
+          const keyUp = Object.keys(parse.files)[0];
+          if (keyUp) {
+            await fs.unlink(parse.files[keyUp].filepath);
+          }
+          return Response.badRequest(
+            res,
+            "harus mengupload foto dengan properti foto_bukti"
+          );
+        }
+  
         const { result } = await mysqlQuery(
           "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
           [+field.pengaduanID, "diproses"]
         );
 
         if (!result.length) {
-          errors.push("pengaduan selesai harus diproses terlebih dahulu");
+          await fs.unlink(file.foto_bukti.filepath);
+          return Response.notFound(res, "pengaduan selesai harus diproses terlebih dahulu");
         }
 
-        singPengaduan = result;
-      } else if (field.status === "ditolak") {
-        const { result } = await mysqlQuery(
-          "SELECT * FROM pengaduan WHERE id = ? AND (status = ? OR status = ? )",
-          [+field.pengaduanID, "terkirim", "diproses"]
+        const penVal = new PenangananVal(field);
+        penVal.checkLen();
+  
+        if (penVal.getErrors.length) {
+          await fs.unlink(file.foto_bukti.filepath);
+          return Response.badRequest(res, penVal.getErrors);
+        }
+  
+        const imgVal = new ImgVal(file.foto_bukti);
+  
+        if (imgVal.getErrors().length) {
+          await fs.unlink(file.foto_bukti.filepath);
+          return Response.badRequest(res, imgVal.getErrors());
+        }
+  
+        const img = await moveUploadedFile(parse.files.foto_bukti);
+        const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${img}`;
+  
+        await mysqlQuery("UPDATE pengaduan SET status = ? WHERE id = ?", [
+          penVal.getStatus,
+          +field.pengaduanID,
+        ]);
+  
+        await mysqlQuery(
+          "INSERT INTO penanganan (foto_bukti,deskripsi,fk_pengaduan) VALUES (?,?,?)",
+          [imgUrl, field.deskripsi, +field.pengaduanID]
         );
+  
+        return Response.created(res, "berhasil menambahkan penanganan");
+      } else if (field.status === "ditolak") {
 
-        if (!result.length) {
-          errors.push("pengaduan tidak ditemukan");
+        if (typeof parse.files.foto_bukti === "undefined") {
+          const keyUp = Object.keys(parse.files)[0];
+          if (keyUp) {
+            await fs.unlink(parse.files[keyUp].filepath);
+          }
+
+          const { result } = await mysqlQuery(
+            "SELECT * FROM pengaduan WHERE id = ? AND (status = ? OR status = ? )",
+            [+field.pengaduanID, "terkirim", "diproses"]
+          );
+  
+          if (!result.length) {
+            return Response.notFound(res, "pengaduan tidak ditemukan");
+          }
+  
+          const penVal = new PenangananVal(field);
+          penVal.checkLen();
+    
+          if (penVal.getErrors.length) {
+            return Response.badRequest(res, penVal.getErrors);
+          }
+  
+          const imgUrl = "https://iili.io/Higl6b4.png";
+          await mysqlQuery("UPDATE pengaduan SET status = ? WHERE id = ?", [
+            penVal.getStatus,
+            +field.pengaduanID,
+          ]);
+    
+          await mysqlQuery(
+            "INSERT INTO penanganan (foto_bukti,deskripsi,fk_pengaduan) VALUES (?,?,?)",
+            [imgUrl, field.deskripsi, +field.pengaduanID]
+          );
+    
+          return Response.created(res, "berhasil menambahkan penanganan");
+
+        }else{
+          const { result } = await mysqlQuery(
+            "SELECT * FROM pengaduan WHERE id = ? AND status = ?",
+            [+field.pengaduanID, "diproses"]
+          );
+  
+          if (!result.length) {
+            await fs.unlink(file.foto_bukti.filepath);
+            return Response.notFound(res, "pengaduan selesai harus diproses terlebih dahulu");
+          }
+  
+          const penVal = new PenangananVal(field);
+          penVal.checkLen();
+    
+          if (penVal.getErrors.length) {
+            await fs.unlink(file.foto_bukti.filepath);
+            return Response.badRequest(res, penVal.getErrors);
+          }
+    
+          const imgVal = new ImgVal(file.foto_bukti);
+    
+          if (imgVal.getErrors().length) {
+            await fs.unlink(file.foto_bukti.filepath);
+            return Response.badRequest(res, imgVal.getErrors());
+          }
+    
+          const img = await moveUploadedFile(parse.files.foto_bukti);
+          const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${img}`;
+    
+          await mysqlQuery("UPDATE pengaduan SET status = ? WHERE id = ?", [
+            penVal.getStatus,
+            +field.pengaduanID,
+          ]);
+    
+          await mysqlQuery(
+            "INSERT INTO penanganan (foto_bukti,deskripsi,fk_pengaduan) VALUES (?,?,?)",
+            [imgUrl, field.deskripsi, +field.pengaduanID]
+          );
+    
+          return Response.created(res, "berhasil menambahkan penanganan");
         }
-
-        singPengaduan = result;
-      } else {
-        errors.push("status hanya boleh selesai atau ditolak");
       }
-
-      if (!singPengaduan.length) {
-        await fs.unlink(file.foto_bukti.filepath);
-        return Response.notFound(res, errors);
-      }
-
-      const penVal = new PenangananVal(field);
-      penVal.checkLen();
-      penVal.checkStatus();
-
-      if (penVal.getErrors.length) {
-        await fs.unlink(file.foto_bukti.filepath);
-        return Response.badRequest(res, penVal.getErrors);
-      }
-
-      const imgVal = new ImgVal(file.foto_bukti);
-
-      if (imgVal.getErrors().length) {
-        await fs.unlink(file.foto_bukti.filepath);
-        return Response.badRequest(res, imgVal.getErrors());
-      }
-
-      const img = await moveUploadedFile(parse.files.foto_bukti);
-      const imgUrl = `${req.protocol}://${req.headers.host}/public/image/${img}`;
-
-      await mysqlQuery("UPDATE pengaduan SET status = ? WHERE id = ?", [
-        penVal.getStatus,
-        +field.pengaduanID,
-      ]);
-
-      await mysqlQuery(
-        "INSERT INTO penanganan (foto_bukti,deskripsi,fk_pengaduan) VALUES (?,?,?)",
-        [imgUrl, field.deskripsi, +field.pengaduanID]
-      );
-
-      return Response.created(res, "berhasil menambahkan penanganan");
     } catch (err) {
       return Response.serverError(res, err.message);
     }

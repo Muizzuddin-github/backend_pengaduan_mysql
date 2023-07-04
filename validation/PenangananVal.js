@@ -19,12 +19,6 @@ class PenangananVal {
       this.#errors.push("deskripsi minimal 12 karakter");
     }
   }
-  checkStatus() {
-    const status = ["ditolak", "selesai"];
-    if (!status.includes(this.#status)) {
-      this.#errors.push("status hanya boleh ditolak atau selesai");
-    }
-  }
 
   get getErrors() {
     return this.#errors;
