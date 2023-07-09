@@ -37,7 +37,12 @@ class PengaduanControl {
         [req.user.id, req.params.status]
       );
 
-      return Response.success(res, "semua data pengaduan anda", result);
+      return Response.success(
+        res,
+        "semua data pengaduan anda",
+        result,
+        req.user
+      );
     } catch (err) {
       return Response.serverError(res, err.message);
     }
